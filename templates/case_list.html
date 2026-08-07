@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Case Files — Crime Management System{% endblock %}
+{% block eyebrow %}Case Work{% endblock %}
+{% block page_title %}Case Files{% endblock %}
+
+{% block content %}
+
+<div class="card card-pad" style="margin-bottom:18px;">
+  <form method="GET" style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="field" style="min-width:200px; margin-bottom:0;">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">All statuses</option>
+        {% for s in ['Open', 'Investigating', 'Closed'] %}
+        <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-outline">Filter</button>
+    {% if status %}<a href="{{ url_for('case_list') }}" class="btn btn-outline">Clear</a>{% endif %}
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <h3>{{ cases|length }} case{{ 's' if cases|length != 1 }}{{ '' if current_user.is_admin else ' assigned to you' }}</h3>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Case No.</th><th>FIR No.</th><th>Crime Type</th><th>Officer</th><th>Priority</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for case in cases %}
+        <tr>
+          <td><a class="row-link mono" href="{{ url_for('case_detail', case_id=case.id) }}">{{ case.case_number }}</a></td>
+          <td class="mono">{{ case.fir.fir_number }}</td>
+          <td>{{ case.fir.crime_type }}</td>
+          <td>{{ case.officer.name if case.officer else '—' }}</td>
+          <td><span class="pill pill-{{ case.priority|lower }}">{{ case.priority }}</span></td>
+          <td><span class="stamp stamp-{{ case.status|lower|replace(' ', '') }}">{{ case.status }}</span></td>
+          <td><a href="{{ url_for('case_detail', case_id=case.id) }}" class="btn btn-outline btn-sm">Open</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h3l2 2h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <div>No case files found. Open one from an FIR record.</div>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

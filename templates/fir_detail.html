@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ fir.fir_number }} — Crime Management System{% endblock %}
+{% block eyebrow %}Case Work / FIR Records{% endblock %}
+{% block page_title %}{{ fir.fir_number }}{% endblock %}
+{% block topbar_actions %}
+<div style="display:flex; gap:10px;">
+  <a href="{{ url_for('fir_edit', fir_id=fir.id) }}" class="btn btn-outline">Edit</a>
+  {% if current_user.is_admin %}
+  <form method="POST" action="{{ url_for('fir_delete', fir_id=fir.id) }}" data-confirm="Delete FIR {{ fir.fir_number }}? This cannot be undone.">
+    <button type="submit" class="btn btn-danger">Delete</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('fir_list') }}">FIR Records</a> / {{ fir.fir_number }}</div>
+
+<div style="margin-bottom:18px;">
+  <span class="stamp stamp-{{ fir.status|lower|replace(' ', '') }}">{{ fir.status }}</span>
+  <span class="chip mono" style="margin-left:6px;">Filed {{ fir.date_filed.strftime('%d %b %Y, %I:%M %p') }}</span>
+  {% if fir.filed_by %}<span class="chip">by {{ fir.filed_by.name }}</span>{% endif %}
+</div>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr; align-items:start;">
+  <div class="card card-pad">
+    <div class="section-title"><div><span class="eyebrow">Incident</span><h3 style="margin:0;">{{ fir.crime_type }}</h3></div></div>
+    <div class="grid grid-2" style="margin-bottom:16px;">
+      <div><label style="margin-bottom:2px;">Location</label><div>{{ fir.location }}</div></div>
+      <div><label style="margin-bottom:2px;">Date of Incident</label><div class="mono">{{ fir.date_of_incident.strftime('%d %b %Y') }}</div></div>
+    </div>
+    <label style="margin-bottom:4px;">Description</label>
+    <p style="white-space:pre-wrap; margin:0;">{{ fir.description }}</p>
+
+    <div class="divider"></div>
+
+    <div class="section-title"><div><span class="eyebrow">Reported by</span><h3 style="margin:0;">{{ fir.complainant.name }}</h3></div></div>
+    <div class="grid grid-2">
+      <div><label style="margin-bottom:2px;">Phone</label><div>{{ fir.complainant.phone }}</div></div>
+      <div><label style="margin-bottom:2px;">Email</label><div>{{ fir.complainant.email or '—' }}</div></div>
+      <div><label style="margin-bottom:2px;">Address</label><div>{{ fir.complainant.address or '—' }}</div></div>
+      <div><label style="margin-bottom:2px;">Gender</label><div>{{ fir.complainant.gender or '—' }}</div></div>
+    </div>
+  </div>
+
+  <div class="card card-pad">
+    <span class="eyebrow">Case Status</span>
+    {% if fir.case %}
+    <h3 style="margin-top:2px;">{{ fir.case.case_number }}</h3>
+    <p class="help-text">Assigned to: {{ fir.case.officer.name if fir.case.officer else 'Unassigned' }}</p>
+    <a href="{{ url_for('case_detail', case_id=fir.case.id) }}" class="btn btn-primary btn-block">Open Case File</a>
+    {% else %}
+    <p class="help-text" style="margin-top:8px;">No case has been opened for this FIR yet.</p>
+    <form method="POST" action="{{ url_for('fir_create_case', fir_id=fir.id) }}" style="margin-top:14px;">
+      <div class="field">
+        <label for="officer_id">Assign Officer (optional)</label>
+        <select id="officer_id" name="officer_id">
+          <option value="">Leave unassigned</option>
+          {% for o in officers %}
+          <option value="{{ o.id }}">{{ o.name }} ({{ o.badge_number or 'no badge' }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="priority">Priority</label>
+        <select id="priority" name="priority">
+          <option>Low</option><option selected>Medium</option><option>High</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-brass btn-block">Open Case File</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

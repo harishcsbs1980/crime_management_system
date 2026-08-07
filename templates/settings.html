@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Settings — Crime Management System{% endblock %}
+{% block eyebrow %}Account{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="grid grid-2" style="align-items:start;">
+  <div class="card card-pad">
+    <span class="eyebrow">Profile</span>
+    <h3 style="margin-top:2px;">{{ current_user.name }}</h3>
+    <div class="grid grid-2" style="margin-top:12px;">
+      <div><label style="margin-bottom:2px;">Username</label><div class="mono">{{ current_user.username }}</div></div>
+      <div><label style="margin-bottom:2px;">Role</label><div>{{ current_user.role }}</div></div>
+      <div><label style="margin-bottom:2px;">Badge No.</label><div class="mono">{{ current_user.badge_number or '—' }}</div></div>
+      <div><label style="margin-bottom:2px;">Phone</label><div>{{ current_user.phone or '—' }}</div></div>
+    </div>
+  </div>
+
+  <div class="card card-pad">
+    <span class="eyebrow">Security</span>
+    <h3 style="margin-top:2px;">Change Password</h3>
+    <form method="POST">
+      <div class="field"><label for="current_password">Current Password</label><input type="password" id="current_password" name="current_password" required></div>
+      <div class="field"><label for="new_password">New Password</label><input type="password" id="new_password" name="new_password" required></div>
+      <button type="submit" class="btn btn-brass">Update Password</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

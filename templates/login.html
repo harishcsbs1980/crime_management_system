@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Crime Management System</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-stack">
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}"><span>{{ message }}</span><button aria-label="Dismiss">&times;</button></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="login-wrap">
+  <div class="login-side">
+    <span class="badge-mark-lg">CM</span>
+    <div class="eyebrow" style="color:#B8912F; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px;">Department Records Portal</div>
+    <h1>One case file, from FIR to final judgment.</h1>
+    <p>Register FIRs, assign investigating officers, track evidence and witness statements, and follow every case through to court — all from a single ledger.</p>
+    <div class="stats-strip">
+      <div><div class="n">01</div><div class="l">Register FIR</div></div>
+      <div><div class="n">02</div><div class="l">Investigate</div></div>
+      <div><div class="n">03</div><div class="l">Prosecute</div></div>
+      <div><div class="n">04</div><div class="l">Close &amp; Report</div></div>
+    </div>
+  </div>
+
+  <div class="login-form-side">
+    <div class="login-box">
+      <div class="eyebrow">Authorized Personnel Only</div>
+      <h2>Sign in</h2>
+      <div class="desc">Enter your credentials to access the records portal.</div>
+
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autofocus placeholder="e.g. admin">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••">
+        </div>
+        <div class="checkbox-row field">
+          <input type="checkbox" id="remember" name="remember">
+          <label for="remember">Keep me signed in on this device</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Sign in to portal</button>
+      </form>
+
+      <div class="demo-creds">
+        Demo access — Admin: <strong>admin / admin123</strong><br>
+        Demo access — Officer: <strong>officer1 / officer123</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

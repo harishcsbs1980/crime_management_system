@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}User Management — Crime Management System{% endblock %}
+{% block eyebrow %}Administration{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('user_new') }}" class="btn btn-brass">+ Add User</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-head"><h3>{{ users|length }} user{{ 's' if users|length != 1 }}</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Badge No.</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.name }}</strong></td>
+          <td class="mono">{{ u.username }}</td>
+          <td><span class="pill {{ 'pill-high' if u.role == 'admin' else 'pill-low' }}">{{ u.role }}</span></td>
+          <td class="mono">{{ u.badge_number or '—' }}</td>
+          <td>{% if u.is_active_user %}<span class="stamp stamp-closed">Active</span>{% else %}<span class="stamp stamp-court">Disabled</span>{% endif %}</td>
+          <td style="display:flex; gap:6px;">
+            <a href="{{ url_for('user_edit', user_id=u.id) }}" class="btn btn-outline btn-sm">Edit</a>
+            {% if u.id != current_user.id %}
+            <form method="POST" action="{{ url_for('user_delete', user_id=u.id) }}" data-confirm="Delete user {{ u.name }}?">
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

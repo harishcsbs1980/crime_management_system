@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}{{ case.case_number }} — Crime Management System{% endblock %}
+{% block eyebrow %}Case Work / Case Files{% endblock %}
+{% block page_title %}{{ case.case_number }}{% endblock %}
+{% block topbar_actions %}
+<span class="stamp stamp-{{ case.status|lower|replace(' ', '') }}">{{ case.status }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('case_list') }}">Case Files</a> / {{ case.case_number }}</div>
+
+<div class="grid" style="grid-template-columns: 2.2fr 1fr; align-items:start; margin-bottom:20px;">
+  <div>
+    <div class="tabs" data-group="case">
+      <div class="tab-link active" data-group-ref="case" data-tab-target="overview">Overview</div>
+      <div class="tab-link" data-group-ref="case" data-tab-target="evidence">Evidence ({{ case.evidences|length }})</div>
+      <div class="tab-link" data-group-ref="case" data-tab-target="witnesses">Witnesses ({{ case.witnesses|length }})</div>
+      <div class="tab-link" data-group-ref="case" data-tab-target="notes">Notes ({{ case.notes|length }})</div>
+      <div class="tab-link" data-group-ref="case" data-tab-target="chargesheet">Charge Sheet</div>
+      <div class="tab-link" data-group-ref="case" data-tab-target="court">Court ({{ case.court_records|length }})</div>
+    </div>
+
+    <!-- Overview -->
+    <div class="tab-panel active" data-group-ref="case" data-tab-id="overview">
+      <div class="card card-pad">
+        <span class="eyebrow">Linked FIR</span>
+        <h3 style="margin-top:2px;"><a href="{{ url_for('fir_detail', fir_id=case.fir.id) }}" class="mono">{{ case.fir.fir_number }}</a> — {{ case.fir.crime_type }}</h3>
+        <p style="color:var(--muted); margin-bottom:16px;">{{ case.fir.location }} · {{ case.fir.date_of_incident.strftime('%d %b %Y') }}</p>
+        <label>Case Description</label>
+        <p style="white-space:pre-wrap;">{{ case.description or 'No description provided.' }}</p>
+
+        <div class="divider"></div>
+        <form method="POST" action="{{ url_for('case_update_status', case_id=case.id) }}" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+          <div class="field" style="margin-bottom:0; min-width:180px;">
+            <label for="status">Update Case Status</label>
+            <select id="status" name="status">
+              {% for s in ['Open', 'Investigating', 'Closed'] %}
+              <option value="{{ s }}" {{ 'selected' if case.status == s }}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Update Status</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Evidence -->
+    <div class="tab-panel" data-group-ref="case" data-tab-id="evidence">
+      <div class="card card-pad" style="margin-bottom:16px;">
+        <h3 style="margin-bottom:12px;">Upload Evidence</h3>
+        <form method="POST" action="{{ url_for('case_add_evidence', case_id=case.id) }}" enctype="multipart/form-data">
+          <div class="form-row">
+            <div class="field"><label for="title">Title</label><input type="text" id="title" name="title" required></div>
+            <div class="field"><label for="file">File (optional)</label><input type="file" id="file" name="file"></div>
+          </div>
+          <div class="field"><label for="ev_description">Description</label><textarea id="ev_description" name="description"></textarea></div>
+          <button type="submit" class="btn btn-brass">Add Evidence</button>
+        </form>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Description</th><th>File</th><th>Uploaded</th></tr></thead>
+            <tbody>
+              {% for e in case.evidences %}
+              <tr>
+                <td><strong>{{ e.title }}</strong></td>
+                <td>{{ e.description or '—' }}</td>
+                <td>{% if e.file_path %}<a href="{{ url_for('static', filename='uploads/' + e.file_path) }}" target="_blank">Download</a>{% else %}—{% endif %}</td>
+                <td class="mono">{{ e.upload_date.strftime('%d %b %Y') }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="4"><div class="empty-state">No evidence uploaded yet.</div></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Witnesses -->
+    <div class="tab-panel" data-group-ref="case" data-tab-id="witnesses">
+      <div class="card card-pad" style="margin-bottom:16px;">
+        <h3 style="margin-bottom:12px;">Record Witness Statement</h3>
+        <form method="POST" action="{{ url_for('case_add_witness', case_id=case.id) }}">
+          <div class="form-row">
+            <div class="field"><label for="w_name">Witness Name</label><input type="text" id="w_name" name="name" required></div>
+            <div class="field"><label for="w_phone">Phone (optional)</label><input type="tel" id="w_phone" name="phone"></div>
+          </div>
+          <div class="field"><label for="statement">Statement</label><textarea id="statement" name="statement" required></textarea></div>
+          <button type="submit" class="btn btn-brass">Save Statement</button>
+        </form>
+      </div>
+      {% for w in case.witnesses %}
+      <div class="card card-pad" style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between;"><strong>{{ w.name }}</strong><span class="mono chip">{{ w.recorded_on.strftime('%d %b %Y') }}</span></div>
+        {% if w.phone %}<div class="help-text" style="margin-bottom:8px;">{{ w.phone }}</div>{% endif %}
+        <p style="margin:0;">{{ w.statement }}</p>
+      </div>
+      {% else %}
+      <div class="card"><div class="empty-state">No witness statements recorded yet.</div></div>
+      {% endfor %}
+    </div>
+
+    <!-- Notes -->
+    <div class="tab-panel" data-group-ref="case" data-tab-id="notes">
+      <div class="card card-pad" style="margin-bottom:16px;">
+        <h3 style="margin-bottom:12px;">Investigation Note</h3>
+        <form method="POST" action="{{ url_for('case_add_note', case_id=case.id) }}">
+          <div class="field"><label for="note">Note</label><textarea id="note" name="note" required placeholder="Log a development, lead, or update..."></textarea></div>
+          <button type="submit" class="btn btn-brass">Add Note</button>
+        </form>
+      </div>
+      {% for n in case.notes|sort(attribute='created_at', reverse=True) %}
+      <div class="timeline-item" style="padding:14px 0;">
+        <div class="timeline-dot"></div>
+        <div>
+          <div class="t-title">{{ n.note }}</div>
+          <div class="t-meta">{{ n.created_by.name if n.created_by else 'Unknown' }} · {{ n.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-state">No investigation notes yet.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Charge Sheet -->
+    <div class="tab-panel" data-group-ref="case" data-tab-id="chargesheet">
+      <div class="card card-pad">
+        <h3 style="margin-bottom:12px;">{{ 'Update' if case.charge_sheet else 'File' }} Charge Sheet</h3>
+        <form method="POST" action="{{ url_for('case_add_charge_sheet', case_id=case.id) }}" enctype="multipart/form-data">
+          <div class="field"><label for="summary">Summary</label>
+            <textarea id="summary" name="summary" placeholder="Summary of charges filed...">{{ case.charge_sheet.summary if case.charge_sheet else '' }}</textarea>
+          </div>
+          <div class="field"><label for="cs_file">Document (optional)</label><input type="file" id="cs_file" name="file"></div>
+          <button type="submit" class="btn btn-brass">{{ 'Update' if case.charge_sheet else 'File' }} Charge Sheet</button>
+        </form>
+        {% if case.charge_sheet and case.charge_sheet.file_path %}
+        <p style="margin-top:12px;"><a href="{{ url_for('static', filename='uploads/' + case.charge_sheet.file_path) }}" target="_blank">View filed document</a></p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Court -->
+    <div class="tab-panel" data-group-ref="case" data-tab-id="court">
+      <div class="card card-pad" style="margin-bottom:16px;">
+        <h3 style="margin-bottom:12px;">Add Court Record</h3>
+        <form method="POST" action="{{ url_for('case_add_court_record', case_id=case.id) }}">
+          <div class="form-row">
+            <div class="field"><label for="hearing_date">Hearing Date</label><input type="date" id="hearing_date" name="hearing_date" required></div>
+            <div class="field"><label for="court_status">Court Status</label>
+              <select id="court_status" name="court_status">
+                <option>Scheduled</option><option>Adjourned</option><option>Judgment</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label for="judge_name">Judge (optional)</label><input type="text" id="judge_name" name="judge_name"></div>
+          <div class="field"><label for="remarks">Remarks</label><textarea id="remarks" name="remarks"></textarea></div>
+          <div class="field"><label for="judgment">Judgment (if delivered)</label><textarea id="judgment" name="judgment"></textarea></div>
+          <button type="submit" class="btn btn-brass">Add Court Record</button>
+        </form>
+      </div>
+      {% for c in case.court_records|sort(attribute='hearing_date', reverse=True) %}
+      <div class="card card-pad" style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong class="mono">{{ c.hearing_date.strftime('%d %b %Y') }}</strong>
+          <span class="stamp stamp-{{ c.court_status|lower|replace(' ', '') }}">{{ c.court_status }}</span>
+        </div>
+        {% if c.judge_name %}<div class="help-text">Judge: {{ c.judge_name }}</div>{% endif %}
+        {% if c.remarks %}<p style="margin:8px 0 0;">{{ c.remarks }}</p>{% endif %}
+        {% if c.judgment %}<p style="margin:8px 0 0;"><strong>Judgment:</strong> {{ c.judgment }}</p>{% endif %}
+      </div>
+      {% else %}
+      <div class="card"><div class="empty-state">No court records yet.</div></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card card-pad" style="margin-bottom:16px;">
+      <span class="eyebrow">Assignment</span>
+      <h3 style="margin-top:2px;">{{ case.officer.name if case.officer else 'Unassigned' }}</h3>
+      {% if case.officer %}<p class="help-text">{{ case.officer.badge_number or '' }}</p>{% endif %}
+      {% if current_user.is_admin %}
+      <form method="POST" action="{{ url_for('case_assign', case_id=case.id) }}" style="margin-top:12px;">
+        <div class="field">
+          <label for="officer_id">Reassign Officer</label>
+          <select id="officer_id" name="officer_id">
+            <option value="">Unassigned</option>
+            {% for o in officers %}
+            <option value="{{ o.id }}" {{ 'selected' if case.officer_id == o.id }}>{{ o.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-outline btn-block">Save Assignment</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="card card-pad">
+      <span class="eyebrow">Case Info</span>
+      <div style="margin-top:8px;">
+        <label style="margin-bottom:2px;">Priority</label>
+        <div><span class="pill pill-{{ case.priority|lower }}">{{ case.priority }}</span></div>
+      </div>
+      <div style="margin-top:12px;">
+        <label style="margin-bottom:2px;">Opened</label>
+        <div class="mono">{{ case.created_at.strftime('%d %b %Y') }}</div>
+      </div>
+      {% if case.closed_at %}
+      <div style="margin-top:12px;">
+        <label style="margin-bottom:2px;">Closed</label>
+        <div class="mono">{{ case.closed_at.strftime('%d %b %Y') }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

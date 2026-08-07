@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}FIR Records — Crime Management System{% endblock %}
+{% block eyebrow %}Case Work{% endblock %}
+{% block page_title %}FIR Records{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('fir_new') }}" class="btn btn-brass">+ Register New FIR</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="card card-pad" style="margin-bottom:18px;">
+  <form method="GET" style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;">
+    <div class="field" style="flex:1; min-width:220px; margin-bottom:0;">
+      <label for="q">Search</label>
+      <input type="text" id="q" name="q" value="{{ search }}" placeholder="FIR number, crime type, or location">
+    </div>
+    <div class="field" style="min-width:180px; margin-bottom:0;">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">All statuses</option>
+        {% for s in ['Registered', 'Under Investigation', 'Charge Sheet Filed', 'In Court', 'Closed'] %}
+        <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-outline">Filter</button>
+    {% if search or status %}<a href="{{ url_for('fir_list') }}" class="btn btn-outline">Clear</a>{% endif %}
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <h3>{{ firs|length }} record{{ 's' if firs|length != 1 }}</h3>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>FIR No.</th><th>Crime Type</th><th>Location</th><th>Complainant</th><th>Incident Date</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for fir in firs %}
+        <tr>
+          <td><a class="row-link mono" href="{{ url_for('fir_detail', fir_id=fir.id) }}">{{ fir.fir_number }}</a></td>
+          <td>{{ fir.crime_type }}</td>
+          <td>{{ fir.location }}</td>
+          <td>{{ fir.complainant.name }}</td>
+          <td class="mono">{{ fir.date_of_incident.strftime('%d %b %Y') }}</td>
+          <td><span class="stamp stamp-{{ fir.status|lower|replace(' ', '') }}">{{ fir.status }}</span></td>
+          <td><a href="{{ url_for('fir_detail', fir_id=fir.id) }}" class="btn btn-outline btn-sm">Open</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            <div>No FIRs match your filters.</div>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

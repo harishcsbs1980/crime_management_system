@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit User' if user else 'Add User' }} — Crime Management System{% endblock %}
+{% block eyebrow %}Administration{% endblock %}
+{% block page_title %}{{ 'Edit ' + user.name if user else 'Add New User' }}{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('user_list') }}">User Management</a> / {{ 'Edit' if user else 'New' }}</div>
+
+<div class="card card-pad" style="max-width:600px;">
+  <form method="POST">
+    <div class="form-row">
+      <div class="field"><label for="name">Full Name</label><input type="text" id="name" name="name" required value="{{ user.name if user else '' }}"></div>
+      <div class="field"><label for="username">Username</label>
+        <input type="text" id="username" name="username" {{ 'readonly' if user else 'required' }}
+               value="{{ user.username if user else '' }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label for="email">Email (optional)</label><input type="email" id="email" name="email" value="{{ user.email if user else '' }}"></div>
+      <div class="field"><label for="phone">Phone (optional)</label><input type="tel" id="phone" name="phone" value="{{ user.phone if user else '' }}"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label for="role">Role</label>
+        <select id="role" name="role">
+          <option value="officer" {{ 'selected' if user and user.role=='officer' }}>Police Officer</option>
+          <option value="admin" {{ 'selected' if user and user.role=='admin' }}>Admin</option>
+        </select>
+      </div>
+      <div class="field"><label for="badge_number">Badge Number (optional)</label><input type="text" id="badge_number" name="badge_number" value="{{ user.badge_number if user else '' }}"></div>
+    </div>
+    <div class="field">
+      <label for="password">{{ 'New Password (leave blank to keep current)' if user else 'Password' }}</label>
+      <input type="password" id="password" name="password" {{ 'required' if not user }}>
+    </div>
+    {% if user %}
+    <div class="checkbox-row field">
+      <input type="checkbox" id="is_active_user" name="is_active_user" {{ 'checked' if user.is_active_user }}>
+      <label for="is_active_user">Account is active</label>
+    </div>
+    {% endif %}
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <button type="submit" class="btn btn-brass">{{ 'Save Changes' if user else 'Create User' }}</button>
+      <a href="{{ url_for('user_list') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

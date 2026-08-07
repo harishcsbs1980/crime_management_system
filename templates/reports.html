@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Reports &amp; Analytics — Crime Management System{% endblock %}
+{% block eyebrow %}Overview{% endblock %}
+{% block page_title %}Reports &amp; Analytics{% endblock %}
+
+{% block content %}
+
+<div class="grid grid-4" style="margin-bottom:30px;">
+  <div class="stat-card accent-blue" data-tab="Total FIRs"><div class="stat-figure">{{ total_firs }}</div><div class="stat-label">Filed to date</div></div>
+  <div class="stat-card accent-amber" data-tab="Total Cases"><div class="stat-figure">{{ total_cases }}</div><div class="stat-label">Cases opened</div></div>
+  <div class="stat-card accent-green" data-tab="Clearance Rate"><div class="stat-figure">{{ clearance_rate }}%</div><div class="stat-label">Cases closed vs. opened</div></div>
+  <div class="stat-card accent-red" data-tab="Open Cases"><div class="stat-figure">{{ open_cases }}</div><div class="stat-label">Still active</div></div>
+</div>
+
+<div class="grid grid-2" style="margin-bottom:22px;">
+  <div class="card card-pad">
+    <span class="eyebrow">By category</span>
+    <h3 style="margin-top:2px;">Crime Type Distribution</h3>
+    <canvas id="crimeTypeChart" height="220"></canvas>
+  </div>
+  <div class="card card-pad">
+    <span class="eyebrow">By priority</span>
+    <h3 style="margin-top:2px;">Case Priority Split</h3>
+    <canvas id="priorityChart" height="220"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h3>Officer Caseload</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Officer</th><th>Cases Assigned</th></tr></thead>
+      <tbody>
+        {% for name, count in officer_load.items() %}
+        <tr><td>{{ name }}</td><td class="mono">{{ count }}</td></tr>
+        {% else %}
+        <tr><td colspan="2"><div class="empty-state">No cases assigned to officers yet.</div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#5B6472';
+const palette = ['#0F1B2D', '#B8912F', '#2C5C8F', '#C98A1F', '#2F6F4E', '#A6332C', '#6B4FA0', '#8B94A3'];
+
+new Chart(document.getElementById('crimeTypeChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ crime_type_counts.keys()|list|tojson }},
+    datasets: [{ data: {{ crime_type_counts.values()|list|tojson }}, backgroundColor: '#B8912F', borderRadius: 3 }]
+  },
+  options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+});
+
+new Chart(document.getElementById('priorityChart'), {
+  type: 'pie',
+  data: {
+    labels: {{ priority_counts.keys()|list|tojson }},
+    datasets: [{ data: {{ priority_counts.values()|list|tojson }}, backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { plugins: { legend: { position: 'bottom' } } }
+});
+</script>
+{% endblock %}

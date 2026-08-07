@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit FIR' if fir else 'Register New FIR' }} — Crime Management System{% endblock %}
+{% block eyebrow %}Case Work{% endblock %}
+{% block page_title %}{{ 'Edit ' + fir.fir_number if fir else 'Register New FIR' }}{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('fir_list') }}">FIR Records</a> / {{ 'Edit' if fir else 'New' }}</div>
+
+<div class="card card-pad" style="max-width:760px;">
+  <form method="POST">
+    <h3 style="margin-bottom:4px;">Incident Details</h3>
+    <p class="help-text" style="margin-bottom:18px;">Details of the crime as reported.</p>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="crime_type">Crime Type</label>
+        <select id="crime_type" name="crime_type" required>
+          {% for ct in ['Theft', 'Burglary', 'Assault', 'Fraud', 'Cybercrime', 'Robbery', 'Domestic Violence', 'Vandalism', 'Missing Person', 'Homicide', 'Other'] %}
+          <option value="{{ ct }}" {{ 'selected' if fir and fir.crime_type == ct }}>{{ ct }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="date_of_incident">Date of Incident</label>
+        <input type="date" id="date_of_incident" name="date_of_incident" required
+               value="{{ fir.date_of_incident.isoformat() if fir else '' }}">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="location">Location of Incident</label>
+      <input type="text" id="location" name="location" required placeholder="Street, area, city"
+             value="{{ fir.location if fir else '' }}">
+    </div>
+
+    <div class="field">
+      <label for="description">Complaint Description</label>
+      <textarea id="description" name="description" required placeholder="Describe what happened, in detail...">{{ fir.description if fir else '' }}</textarea>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="margin-bottom:4px;">Complainant Information</h3>
+    <p class="help-text" style="margin-bottom:18px;">Person who is reporting the crime.</p>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="complainant_name">Full Name</label>
+        <input type="text" id="complainant_name" name="complainant_name" required
+               value="{{ complainant.name if complainant else '' }}">
+      </div>
+      <div class="field">
+        <label for="complainant_phone">Phone Number</label>
+        <input type="tel" id="complainant_phone" name="complainant_phone" required
+               value="{{ complainant.phone if complainant else '' }}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="complainant_email">Email (optional)</label>
+        <input type="email" id="complainant_email" name="complainant_email"
+               value="{{ complainant.email if complainant else '' }}">
+      </div>
+      <div class="field">
+        <label for="complainant_gender">Gender (optional)</label>
+        <select id="complainant_gender" name="complainant_gender">
+          <option value="">Prefer not to say</option>
+          {% for g in ['Male', 'Female', 'Other'] %}
+          <option value="{{ g }}" {{ 'selected' if complainant and complainant.gender == g }}>{{ g }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="complainant_address">Address (optional)</label>
+      <input type="text" id="complainant_address" name="complainant_address"
+             value="{{ complainant.address if complainant else '' }}">
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="display:flex; gap:10px;">
+      <button type="submit" class="btn btn-brass">{{ 'Save Changes' if fir else 'Register FIR' }}</button>
+      <a href="{{ url_for('fir_list') if not fir else url_for('fir_detail', fir_id=fir.id) }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
